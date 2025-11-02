@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalkSpace 💬</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Экран авторизации */
+        .auth-screen {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            width: 400px;
+            text-align: center;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .auth-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .auth-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .auth-error {
+            color: #e74c3c;
+            margin-top: 15px;
+            min-height: 20px;
+        }
+
+        /* Основное приложение */
+        .app-screen {
+            display: none;
+            width: 1000px;
+            height: 700px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            font-size: 24px;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        /* Контент вкладок */
+        .tab-content {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Списки пользователей */
+        .user-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+.user-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.3s;
+            gap: 12px;
+        }
+
+        .user-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .user-avatar {
+            font-size: 24px;
+        }
+
+        .user-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .online-dot {
+            width: 10px;
+            height: 10px;
+            background: #28a745;
+            border-radius: 50%;
+        }
+
+        /* Сообщения */
+        .messages-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: bold;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 12px 16px;
+            border-radius: 15px;
+            max-width: 70%;
+            animation: messageAppear 0.3s ease;
+        }
+
+        .message.own {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.other {
+            background: white;
+            border: 1px solid #dee2e6;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        /* Ввод сообщений */
+        .message-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .message-input input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .send-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Поиск */
+        .search-box {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e1e1e1;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+
+        /* Анимации */
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <!-- Экран авторизации -->
+<div class="auth-screen" id="authScreen">
+        <div class="auth-title">💬 TalkSpace</div>
+        <div class="auth-subtitle">Ваше пространство для общения</div>
+        
+        <input type="text" class="auth-input" id="usernameInput" placeholder="Имя пользователя">
+        <input type="password" class="auth-input" id="passwordInput" placeholder="Пароль">
+        
+        <button class="auth-btn" onclick="register()">Создать аккаунт</button>
+        <button class="auth-btn" onclick="login()">Войти в аккаунт</button>
+        
+        <div class="auth-error" id="authError"></div>
+    </div>
+
+    <!-- Основное приложение -->
+    <div class="app-screen" id="appScreen">
+        <!-- Шапка -->
+        <div class="app-header">
+            <div class="user-info">
+                <span class="user-avatar" id="userAvatar">😎</span>
+                <span id="userName">Пользователь</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Выйти</button>
+        </div>
+
+        <!-- Вкладки -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('friends')">👥 Друзья</button>
+            <button class="tab-btn" onclick="openTab('search')">🔍 Поиск</button>
+            <button class="tab-btn" onclick="openTab('global')">🌍 Общий чат</button>
+        </div>
+
+        <!-- Контент -->
+        <div class="app-content">
+            <!-- Вкладка Друзья -->
+            <div id="friendsTab" class="tab-content active">
+                <div class="user-list" id="friendsList">
+                    <div class="empty-state">У вас пока нет друзей</div>
+                </div>
+                <div class="messages-container" id="privateChat" style="display: none;">
+                    <div class="chat-header" id="chatWith">Чат с пользователем</div>
+                    <div class="messages" id="privateMessages"></div>
+                    <div class="message-input">
+                        <input type="text" id="privateMessageInput" placeholder="Введите сообщение...">
+                        <button class="send-btn" onclick="sendPrivateMessage()">➤</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка Поиск -->
+            <div id="searchTab" class="tab-content">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Введите имя пользователя..." oninput="searchUsers()">
+                </div>
+                <div class="user-list" id="searchResults">
+                    <div class="empty-state">Начните поиск пользователей</div>
+                </div>
+            </div>
+
+            <!-- Вкладка Общий чат -->
+            <div id="globalTab" class="tab-content">
+                <div class="messages-container">
+                    <div class="chat-header">🌍 Общий чат TalkSpace</div>
+                    <div class="messages" id="globalMessages"></div>
+                    <div class="message-input">
+                        <input type="text" id="globalMessageInput" placeholder="Введите сообщение в общий чат...">
+                        <button class="send-btn" onclick="sendGlobalMessage()">➤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Socket соединение
+        const socket = io();
+        
+        // Переменные приложения
+        let currentUser = null;
+        let currentChat = null;
+
+        // Функции авторизации
+        function register() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            
+            if (username && password) {
+                socket.emit('register', { username, password });
+            } else {
+                showError('Заполните все поля');
+            }
+        }
+function login() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            
+            if (username && password) {
+                socket.emit('login', { username, password });
+            } else {
+                showError('Заполните все поля');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('authScreen').style.display = 'block';
+            document.getElementById('appScreen').style.display = 'none';
+        }
+
+        // Функции интерфейса
+        function openTab(tabName) {
+            // Скрываем приватный чат если открываем другую вкладку
+            if (tabName !== 'friends') {
+                document.getElementById('privateChat').style.display = 'none';
+                document.getElementById('friendsList').style.display = 'block';
+            }
+            
+            // Активируем вкладки
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        function searchUsers() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query.length >= 2) {
+                socket.emit('search_users', query);
+            }
+        }
+
+        function sendFriendRequest(username) {
+            socket.emit('send_friend_request', username);
+            event.target.textContent = '✅ Запрос отправлен';
+            event.target.disabled = true;
+        }
+
+        function acceptFriendRequest(fromUsername) {
+            socket.emit('accept_friend_request', fromUsername);
+        }
+
+        function openPrivateChat(friend) {
+            currentChat = friend.username;
+            
+            // Показываем чат и скрываем список друзей
+            document.getElementById('privateChat').style.display = 'flex';
+            document.getElementById('friendsList').style.display = 'none';
+            document.getElementById('chatWith').textContent = 💬 Чат с ${friend.username} ${friend.avatar};
+            document.getElementById('privateMessages').innerHTML = '';
+            
+            // Загружаем историю сообщений
+            socket.emit('load_chat_history', friend.username);
+        }
+
+        function sendPrivateMessage() {
+            const input = document.getElementById('privateMessageInput');
+            const text = input.value.trim();
+            
+            if (text && currentChat) {
+                socket.emit('private_message', { to: currentChat, text });
+                input.value = '';
+            }
+        }
+
+        function sendGlobalMessage() {
+            const input = document.getElementById('globalMessageInput');
+            const text = input.value.trim();
+            
+            if (text) {
+                socket.emit('global_message', text);
+                input.value = '';
+            }
+        }
+
+        // Обработчики событий Socket.IO
+        socket.on('connect', () => {
+            console.log('✅ Connected to server');
+        });
+
+        socket.on('register_success', (data) => {
+            currentUser = data.user;
+            showApp();
+        });
+
+        socket.on('login_success', (data) => {
+            currentUser = data.user;
+            showApp();
+            updateFriendsList(data.friends);
+        });
+
+        socket.on('register_error', (error) => {
+            showError(error);
+        });
+
+        socket.on('login_error', (error) => {
+            showError(error);
+        });
+socket.on('search_results', (results) => {
+            const container = document.getElementById('searchResults');
+            
+            if (results.length === 0) {
+                container.innerHTML = '<div class="empty-state">Пользователи не найдены</div>';
+                return;
+            }
+            
+            container.innerHTML = results.map(user => 
+                <div class="user-item">
+                    <span class="user-avatar">${user.avatar}</span>
+                    <span class="user-name">${user.username}</span>
+                    <button onclick="sendFriendRequest('${user.username}')" 
+                            style="margin-left: auto; padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 10px; cursor: pointer;">
+                        Добавить
+                    </button>
+                </div>
+            ).join('');
+        });
+
+        socket.on('friend_added', (friend) => {
+            updateFriendsList([...getCurrentFriends(), friend]);
+        });
+
+        socket.on('new_private_message', (message) => {
+            addPrivateMessage(message);
+        });
+
+        socket.on('new_global_message', (message) => {
+            addGlobalMessage(message);
+        });
+
+        socket.on('chat_history', (data) => {
+            data.messages.forEach(addPrivateMessage);
+        });
+
+        // Вспомогательные функции
+        function showApp() {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            document.getElementById('userName').textContent = currentUser.username;
+            document.getElementById('userAvatar').textContent = currentUser.avatar;
+        }
+
+        function showError(message) {
+            document.getElementById('authError').textContent = message;
+        }
+
+        function updateFriendsList(friends) {
+            const container = document.getElementById('friendsList');
+            
+            if (friends.length === 0) {
+                container.innerHTML = '<div class="empty-state">У вас пока нет друзей</div>';
+                return;
+            }
+            
+            container.innerHTML = friends.map(friend => 
+                <div class="user-item" onclick="openPrivateChat(${JSON.stringify(friend).replace(/"/g, '&quot;')})">
+                    <span class="user-avatar">${friend.avatar}</span>
+                    <span class="user-name">${friend.username}</span>
+                    <span class="online-dot" style="background: ${friend.online ? '#28a745' : '#6c757d'}"></span>
+                </div>
+            ).join('');
+        }
+
+        function getCurrentFriends() {
+            // В реальном приложении нужно хранить список друзей
+            return [];
+        }
+
+        function addPrivateMessage(message) {
+            const isOwn = message.from === currentUser.username;
+            const container = document.getElementById('privateMessages');
+            
+            container.innerHTML += 
+                <div class="message ${isOwn ? 'own' : 'other'}">
+                    <div class="message-sender">
+                        <span>${message.fromAvatar}</span>
+                        ${isOwn ? 'Вы' : message.from}
+                    </div>
+                    ${message.text}
+                    <div class="message-time">${message.time}</div>
+                </div>
+            ;
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addGlobalMessage(message) {
+            const isOwn = message.from === currentUser.username;
+            const container = document.getElementById('globalMessages');
+            
+            container.innerHTML += `
+                <div class="message ${isOwn ? 'own' : 'other'}">
+<div class="message-sender">
+                        <span>${message.fromAvatar}</span>
+                        ${isOwn ? 'Вы' : message.from}
+                    </div>
+                    ${message.text}
+                    <div class="message-time">${message.time}</div>
+                </div>
+            `;
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Отправка сообщений по Enter
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (document.getElementById('globalTab').classList.contains('active')) {
+                    sendGlobalMessage();
+                } els
